@@ -96,6 +96,7 @@ public:
 	afx_msg void larger();
 	afx_msg void OnAnm();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void symxny();
 };
 
 #ifndef _DEBUG  // cgTest1View.cpp 中的调试版本

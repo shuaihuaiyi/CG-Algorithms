@@ -51,6 +51,7 @@ BEGIN_MESSAGE_MAP(CcgTest1View, CView)
 	ON_COMMAND(ID_32800, &CcgTest1View::larger)
 	ON_COMMAND(ID_anm, &CcgTest1View::OnAnm)
 	ON_WM_TIMER()
+	ON_COMMAND(ID_32804, &CcgTest1View::symxny)
 END_MESSAGE_MAP()
 
 // CcgTest1View ¹¹Ôì/Îö¹¹
@@ -725,4 +726,26 @@ void CcgTest1View::OnTimer(UINT_PTR nIDEvent)
 	if (cy1 > 500 || cy1 < 100)
 		ys = -ys;
 	CView::OnTimer(nIDEvent);
+}
+
+
+void CcgTest1View::symxny()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+	{
+		int temp = points[i].x;
+		points[i].x = cx - cy + points[i].y;
+		points[i].y = -cx + cy + temp;
+	}
+	for (int i = 0; i < points.size(); i++)
+	{ 
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
 }
