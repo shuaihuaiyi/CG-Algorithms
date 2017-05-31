@@ -6,6 +6,11 @@
 
 #include <vector>
 #include <algorithm>
+#define STOP 0
+#define DrawPolygon 1
+#define DrawLine 2
+#define DrawRect 3
+#define BuildCoordinate 4 
 
 using namespace std;
 
@@ -21,9 +26,15 @@ public:
 
 	int m_pointNum;
 
-	int m_graphType;
+	int type;
 	bool finish;
 	vector<CPoint> m_point; 
+
+	pair<CPoint, CPoint>* line;
+	vector<pair<CPoint, CPoint>*> lines;
+	pair<CPoint, CPoint> rect;
+
+	int cx, cy;
 
 // 操作
 public:
@@ -60,6 +71,10 @@ public:
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	void drawLineMid(CPoint p1,CPoint p2);
 	afx_msg void OnChangeDc();
+	afx_msg void OnDrawline();
+	afx_msg void OnDrawrect();
+	afx_msg void OnClipping();
+	afx_msg void buildCoordinate();
 };
 
 #ifndef _DEBUG  // cgTest1View.cpp 中的调试版本
