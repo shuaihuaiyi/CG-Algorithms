@@ -145,7 +145,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	lstBasicCommands.AddTail(ID_VIEW_APPLOOK_OFF_2007_AQUA);
 	lstBasicCommands.AddTail(ID_VIEW_APPLOOK_WINDOWS_7);
 
-	CMFCToolBar::SetBasicCommands(lstBasicCommands);
+	//CMFCToolBar::SetBasicCommands(lstBasicCommands);
 
 	return 0;
 }

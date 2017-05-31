@@ -36,6 +36,21 @@ BEGIN_MESSAGE_MAP(CcgTest1View, CView)
 	ON_COMMAND(ID_drawRect, &CcgTest1View::OnDrawrect)
 	ON_COMMAND(ID_clipping, &CcgTest1View::OnClipping)
 	ON_COMMAND(ID_32785, &CcgTest1View::buildCoordinate)
+	ON_COMMAND(ID_32792, &CcgTest1View::drawPol)
+	ON_COMMAND(ID_32793, &CcgTest1View::moveUp)
+	ON_COMMAND(ID_32794, &CcgTest1View::moveDown)
+	ON_COMMAND(ID_32795, &CcgTest1View::moveLeft)
+	ON_COMMAND(ID_32796, &CcgTest1View::moveRight)
+	ON_COMMAND(ID_32789, &CcgTest1View::symx)
+	ON_COMMAND(ID_32790, &CcgTest1View::symy)
+	ON_COMMAND(ID_32791, &CcgTest1View::symo)
+	ON_COMMAND(ID_32801, &CcgTest1View::symxy)
+	ON_COMMAND(ID_32802, &CcgTest1View::protate)
+	ON_COMMAND(ID_32798, &CcgTest1View::nrotate)
+	ON_COMMAND(ID_32799, &CcgTest1View::smaller)
+	ON_COMMAND(ID_32800, &CcgTest1View::larger)
+	ON_COMMAND(ID_anm, &CcgTest1View::OnAnm)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 // CcgTest1View 构造/析构
@@ -45,7 +60,7 @@ CcgTest1View::CcgTest1View()
 	// TODO: 在此处添加构造代码
 	finish = false;
 	m_pointNum = 0;
-	m_point.clear();
+	points.clear();
 	type = 1;
 }
 
@@ -140,7 +155,8 @@ CcgTest1Doc* CcgTest1View::GetDocument() const // 非调试版本是内联的
 
 void CcgTest1View::OnPolygon()
 {
-	// TODO: 在此添加命令处理程序代码
+	finish = false;
+	points.clear();
 	type = DrawPolygon;
 }
 void CcgTest1View::OnFillpolygon()
@@ -157,8 +173,8 @@ void CcgTest1View::OnFillpolygon()
 				t = i + 1;
 			else
 				t = 0;
-			CPoint p1 = m_point[i];
-			CPoint p2 = m_point[t];
+			CPoint p1 = points[i];
+			CPoint p2 = points[t];
 			if ((y<p1.y&&y>p2.y) || (y > p1.y&&y < p2.y))
 			{
 				int x = (y - p2.y)*(p1.x - p2.x) / (p1.y - p2.y) + p2.x;
@@ -172,13 +188,15 @@ void CcgTest1View::OnFillpolygon()
 				pDC->SetPixel(CPoint(x, (int)y), RGB(255, 0, 0));
 		}
 	}
+
 }
 
 void CcgTest1View::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	if (type == DrawPolygon && !finish)
+	CDC *pDC = GetWindowDC();
+	if (type == DrawPolygon)
 	{
-		m_point.push_back(point);
+		points.push_back(point);
 		m_pointNum++;
 	}
 	else if (type == DrawLine)
@@ -194,7 +212,6 @@ void CcgTest1View::OnLButtonDown(UINT nFlags, CPoint point)
 			line->second = point;
 			finish = false;
 			CPen pen(PS_SOLID, 1, RGB(255, 0, 0));
-			CDC *pDC = GetWindowDC();
 			CPen* pOldPen = pDC->SelectObject(&pen);
 			pDC->MoveTo(line->first);
 			pDC->LineTo(line->second);
@@ -212,21 +229,23 @@ void CcgTest1View::OnLButtonDown(UINT nFlags, CPoint point)
 		else
 		{
 			rect.second = point;
-			CDC *pDC = GetWindowDC();
 			pDC->Rectangle(rect.first.x, rect.first.y, rect.second.x, rect.second.y);
 			type = STOP;
 		}
 	}
 	else if (type == BuildCoordinate)
 	{
-		CDC *pDC = GetWindowDC();
 		cx = point.x;
 		cy = point.y;
 		pDC->MoveTo(cx, 0);
 		pDC->LineTo(cx, 2000);
 		pDC->MoveTo(0, cy);
-		pDC->LineTo(2000, cx);
+		pDC->LineTo(2000, cy);
 		type = STOP;
+	}
+	else if (type==DrawPol)
+	{
+		points.push_back(point);
 	}
 
 	CView::OnLButtonDown(nFlags, point);
@@ -234,9 +253,9 @@ void CcgTest1View::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CcgTest1View::OnRButtonDown(UINT nFlags, CPoint point)
 {
+	CDC *pDC = GetWindowDC();
 	if (type == DrawPolygon)
 	{
-		finish = true;
 		int i;
 		for (i = 0; i < m_pointNum; i++)
 		{
@@ -245,9 +264,25 @@ void CcgTest1View::OnRButtonDown(UINT nFlags, CPoint point)
 				t = i + 1;
 			else
 				t = 0;
-			drawLineMid(m_point[i], m_point[t]);
+			drawLineMid(points[i], points[t]);
 		}
+		type = STOP;
 	}
+	else if (type == DrawPol)
+	{
+		for (int i = 0; i < points.size(); i++)
+		{
+			int t;
+			if (i < points.size() - 1)
+				t = i + 1;
+			else
+				t = 0;
+			pDC->MoveTo(points[i]);
+			pDC->LineTo(points[t]);
+		}
+		type = STOP;
+	}
+
 	CView::OnRButtonDown(nFlags, point);
 }
 
@@ -327,14 +362,12 @@ void CcgTest1View::drawLineMid(CPoint p1, CPoint p2)
 	}
 }
 
-
 void CcgTest1View::OnChangeDc()
 {
 	// TODO: 在此添加命令处理程序代码
 	CDC *pDC = GetWindowDC();
 	pDC->LineTo(-100, 100);
 }
-
 
 void CcgTest1View::OnDrawline()
 {
@@ -343,13 +376,11 @@ void CcgTest1View::OnDrawline()
 	lines.clear();
 }
 
-
 void CcgTest1View::OnDrawrect()
 {
 	finish = false;
 	type = DrawRect;
 }
-
 
 void CcgTest1View::OnClipping()
 {
@@ -427,4 +458,271 @@ void CcgTest1View::buildCoordinate()
 {
 	type = BuildCoordinate;
 	RedrawWindow();
+}
+
+void CcgTest1View::drawPol()
+{
+	finish = false;
+	type = DrawPol;
+	points.clear();
+}
+
+void CcgTest1View::moveUp()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+		points[i].y -= 10;
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+void CcgTest1View::moveDown()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+		points[i].y += 10;
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+void CcgTest1View::moveLeft()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+		points[i].x -= 10;
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+void CcgTest1View::moveRight()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+		points[i].x += 10;
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+
+void CcgTest1View::symx()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+		points[i].y = 2*cy - points[i].y;
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+void CcgTest1View::symy()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+		points[i].x = 2 * cx - points[i].x;
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+
+void CcgTest1View::symo()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+	{
+		points[i].y = 2 * cy - points[i].y;
+		points[i].x = 2 * cx - points[i].x;
+	}
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+
+void CcgTest1View::symxy()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+	{
+		int temp = points[i].x;
+		points[i].x = cx + cy - points[i].y;
+		points[i].y= cx + cy - temp;
+	}
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+void CcgTest1View::protate()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+	{
+		int x = points[i].x -cx;
+		int y = points[i].y-cy;
+		points[i].x = cos(0.1)*x - sin(0.1)*y+cx;
+		points[i].y = sin(0.1)*x + cos(0.1)*y+cy;
+	}
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+
+void CcgTest1View::nrotate()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+	{
+		int x = points[i].x -cx;
+		int y = points[i].y -cy;
+		points[i].x = cos(-0.1)*x - sin(-0.1)*y +cx;
+		points[i].y = sin(-0.1)*x + cos(-0.1)*y +cy;
+	}
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+
+void CcgTest1View::smaller()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+	{
+		int x = points[i].x - cx;
+		int y = points[i].y - cy;
+		points[i].x = 0.5*x + cx;
+		points[i].y = 0.5*y + cy;
+	}
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+
+void CcgTest1View::larger()
+{
+	CDC *pDC = GetWindowDC();
+	for (int i = 0; i < points.size(); i++)
+	{
+		int x = points[i].x - cx;
+		int y = points[i].y - cy;
+		points[i].x = 2*x + cx;
+		points[i].y = 2*y + cy;
+	}
+	for (int i = 0; i < points.size(); i++)
+	{
+		int t;
+		if (i < points.size() - 1)
+			t = i + 1;
+		else
+			t = 0;
+		pDC->MoveTo(points[i]);
+		pDC->LineTo(points[t]);
+	}
+}
+
+
+void CcgTest1View::OnAnm()
+{
+	SetTimer(1, 50, nullptr);
+}
+
+
+void CcgTest1View::OnTimer(UINT_PTR nIDEvent)
+{
+	CDC *pDC = GetWindowDC();
+	RedrawWindow();
+	pDC->Rectangle(cx1,cy1,cx2,cy2);
+	cx1 += xs;
+	cx2 += xs;
+	cy1 += ys;
+	cy2 += ys;
+	if (cx1 > 1000 || cx1 < 100)
+		xs = -xs;
+	if (cy1 > 500 || cy1 < 100)
+		ys = -ys;
+	CView::OnTimer(nIDEvent);
 }

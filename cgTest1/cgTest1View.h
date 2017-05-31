@@ -6,12 +6,14 @@
 
 #include <vector>
 #include <algorithm>
+#include <math.h>
+
 #define STOP 0
 #define DrawPolygon 1
 #define DrawLine 2
 #define DrawRect 3
 #define BuildCoordinate 4 
-
+#define DrawPol 5
 using namespace std;
 
 class CcgTest1View : public CView
@@ -28,13 +30,16 @@ public:
 
 	int type;
 	bool finish;
-	vector<CPoint> m_point; 
+	vector<CPoint> points; 
 
 	pair<CPoint, CPoint>* line;
 	vector<pair<CPoint, CPoint>*> lines;
 	pair<CPoint, CPoint> rect;
 
 	int cx, cy;
+	int cx1 = 100, cx2 = 150, cy1 = 100, cy2 = 150;
+	int xs = 10;
+	int ys = 10;
 
 // 操作
 public:
@@ -75,6 +80,22 @@ public:
 	afx_msg void OnDrawrect();
 	afx_msg void OnClipping();
 	afx_msg void buildCoordinate();
+	afx_msg void drawPol();
+	afx_msg void moveUp();
+	void clear(vector<CPoint> points);
+	afx_msg void moveDown();
+	afx_msg void moveLeft();
+	afx_msg void moveRight();
+	afx_msg void symx();
+	afx_msg void symy();
+	afx_msg void symo();
+	afx_msg void symxy();
+	afx_msg void protate();
+	afx_msg void nrotate();
+	afx_msg void smaller();
+	afx_msg void larger();
+	afx_msg void OnAnm();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
 
 #ifndef _DEBUG  // cgTest1View.cpp 中的调试版本
